@@ -1,0 +1,27 @@
+{
+  "name": "animl",
+  "version": "0.2.0",
+  "description": "A Manim-inspired, dependency-free HTML/JS animation engine built for AI chatbots to generate scenes with.",
+  "main": "animl.js",
+  "scripts": {
+    "test": "node test-smoke.js && node test-extended.js && node test-manimce-features.js && node test-track-a.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3",
+    "katex": "^0.16.47"
+  },
+  "license": "MIT",
+  "keywords": [
+    "animation",
+    "manim",
+    "svg",
+    "webgl",
+    "latex",
+    "ai-generated"
+  ],
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "author": ""
+}

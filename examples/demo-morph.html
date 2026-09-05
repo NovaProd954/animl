@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Animl Morph Demo</title>
+<style>
+  body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; }
+  #stage { width:800px; max-width:95vw; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../animl.js"></script>
+<script>
+const scene = new Animl.Scene("#stage", { width:800, height:500, background:"#0d1117" });
+
+const shape = Animl.shapes.regularPolygon(3, 80, { x:0, y:0, fill:"#4f8fff" });
+scene.add(shape);
+
+async function run(){
+  await scene.play(Animl.anim.drawBorderThenFill(shape, { duration:1 }));
+  await scene.wait(0.3);
+  await scene.play(Animl.anim.morphTo(shape, Animl.shapes.star(5,35,80).props.points, { fill:"#f7b731", duration:1.2 }));
+  await scene.wait(0.3);
+  await scene.play(Animl.anim.morphTo(shape, Animl.shapes.circleVM(80).props.points, { fill:"#ff6b6b", duration:1.2 }));
+  await scene.wait(0.3);
+  await scene.play(Animl.anim.morphTo(shape, Animl.shapes.regularPolygon(6,80).props.points, { fill:"#2ecc71", duration:1.2 }));
+  await scene.play(Animl.anim.indicate(shape, { duration:0.8 }));
+}
+run();
+</script>
+</body>
+</html>

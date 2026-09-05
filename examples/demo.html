@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Animl Demo</title>
+<style>
+  body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; font-family:sans-serif; }
+  #stage { width:800px; max-width:95vw; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../animl.js"></script>
+<script>
+const scene = new Animl.Scene("#stage", { width:800, height:500, background:"#0d1117" });
+
+const circle = new Animl.Circle({ x:-250, y:0, radius:40, fill:"#4f8fff" });
+const square = new Animl.Rect({ x:250, y:0, width:80, height:80, fill:"#ff6b6b" });
+const label = new Animl.Txt({ x:0, y:-150, text:"Animl", fontSize:48, fill:"#e6edf3" });
+
+scene.add(circle);
+scene.add(square);
+scene.add(label);
+
+async function run(){
+  await scene.play(
+    Animl.anim.create(circle, { duration:0.8 }),
+    Animl.anim.create(square, { duration:0.8, delay:0.2 }),
+    Animl.anim.create(label, { duration:1 })
+  );
+  await scene.play(
+    Animl.anim.moveTo(circle, 0, 100, { duration:1.2, easing:"smooth" }),
+    Animl.anim.moveTo(square, 0, -100, { duration:1.2, easing:"smooth" }),
+    Animl.anim.rotateTo(square, 180, { duration:1.2 })
+  );
+  await scene.play(
+    Animl.anim.colorTo(circle, "#f7b731", { duration:1 }),
+    Animl.anim.scaleTo(square, 1.5, { duration:1 })
+  );
+  await scene.wait(0.3);
+  await scene.play(
+    Animl.anim.fadeOut(circle, { duration:0.6 }),
+    Animl.anim.fadeOut(square, { duration:0.6 })
+  );
+}
+run();
+</script>
+</body>
+</html>

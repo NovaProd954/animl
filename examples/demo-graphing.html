@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Animl Graphing Demo</title>
+<style>
+  body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; }
+  #stage { width:800px; max-width:95vw; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../animl.js"></script>
+<script>
+const scene = new Animl.Scene("#stage", { width:800, height:500, background:"#0d1117" });
+
+const axes = new Animl.Axes({ xRange:[-5,5,1], yRange:[-2,2,1], width:600, height:350 });
+scene.add(axes);
+
+const curve = axes.plot(x => Math.sin(x), { color:"#4f8fff", strokeWidth:3 });
+scene.add(curve);
+
+const [dotX, dotY] = axes.toScreen(-5, Math.sin(-5));
+const dot = new Animl.Dot({ x: dotX, y: dotY, radius:7, fill:"#f7b731" });
+scene.add(dot);
+const trace = Animl.tracedPath(dot, { color:"#f7b731", minDist:1 });
+scene.add(trace);
+
+const label1 = new Animl.Txt({ x:-250, y:-200, text:"y = sin(x)", fontSize:22, fill:"#e6edf3", opacity:0 });
+const label2 = new Animl.Txt({ x:0, y:-200, text:"traced by a moving dot", fontSize:22, fill:"#888", opacity:0 });
+scene.add(label1); scene.add(label2);
+
+async function run(){
+  await scene.play(Animl.anim.drawBorderThenFill(curve, { duration:0.01 }));
+  curve.set({ fillOpacity: 0 });
+  await scene.playLagged([Animl.anim.fadeIn(label1,{duration:0.6}), Animl.anim.fadeIn(label2,{duration:0.6})], 0.3);
+
+  const tracker = { t: -5 };
+  dot.addUpdater((el, dt) => {
+    if (tracker.t < 5){
+      tracker.t += dt * 2.5;
+      const [sx, sy] = axes.toScreen(tracker.t, Math.sin(tracker.t));
+      el.props.x = sx; el.props.y = sy;
+    }
+  });
+  await scene.wait(4.5);
+  dot.removeUpdaters();
+}
+run();
+</script>
+</body>
+</html>

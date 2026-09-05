@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Animl LaTeX Demo</title>
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<style>
+  body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; }
+  #stage { width:800px; max-width:95vw; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="../vendor/katex/katex.min.js"></script>
+<script src="../animl.js"></script>
+<script>
+const scene = new Animl.Scene("#stage", { width:800, height:500, background:"#0d1117" });
+
+const title = new Animl.Txt({ x:0, y:-180, text:"Real LaTeX, rendered client-side", fontSize:26, fill:"#e6edf3" });
+const eq1 = new Animl.MathTex({ x:0, y:-60, tex:"E = mc^2", fontSize:44, fill:"#4f8fff" });
+const eq2 = new Animl.MathTex({ x:0, y:40, tex:"\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}", fontSize:38, fill:"#f7b731" });
+const eq3 = new Animl.MathTex({ x:0, y:150, tex:"\\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2}", fontSize:34, fill:"#ff6b6b" });
+
+scene.add(title); scene.add(eq1); scene.add(eq2); scene.add(eq3);
+[title,eq1,eq2,eq3].forEach(el => el.set({ opacity:0 }));
+
+async function run(){
+  await scene.play(Animl.anim.fadeIn(title, { duration:0.6 }));
+  await scene.play(Animl.anim.fadeIn(eq1, { duration:0.6 }), Animl.anim.scaleTo(eq1, 1, { duration:0.6 }));
+  await scene.play(Animl.anim.fadeIn(eq2, { duration:0.6 }));
+  await scene.play(Animl.anim.fadeIn(eq3, { duration:0.6 }));
+}
+eq1.set({ scale:0 });
+run();
+</script>
+</body>
+</html>

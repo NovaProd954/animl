@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Animl 3D Demo</title>
+<style>
+  body { margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; background:#000; font-family:sans-serif; color:#888; }
+  #stage { width:800px; max-width:95vw; }
+  p { font-size:14px; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<p>Drag to orbit &middot; scroll to zoom</p>
+<script src="../animl.js"></script>
+<script>
+const scene = new Animl.Scene3D("#stage", { width:800, height:500, background:"#0d1117", cameraDistance:6 });
+
+const cube = new Animl.Cube({ x:-1.5, size:1, fill:"#4f8fff" });
+const sphere = new Animl.Sphere({ x:1.5, radius:0.7, segments:24, fill:"#ff6b6b" });
+const plane = new Animl.Plane({ y:-1, width:6, height:6, fill:"#2ecc71" });
+
+scene.add(plane);
+scene.add(cube);
+scene.add(sphere);
+
+async function run(){
+  await scene.play(
+    Animl.anim.rotateTo3D(cube, 0, Math.PI*2, 0, { duration:2, easing:"linear" }),
+    Animl.anim.moveTo3D(sphere, 1.5, 1, 0, { duration:2, easing:"smooth" })
+  );
+  await scene.play(
+    Animl.anim.moveTo3D(sphere, 1.5, 0, 0, { duration:1, easing:"bounce" }),
+    Animl.anim.colorTo(cube, "#f7b731", { duration:1 })
+  );
+}
+run();
+</script>
+</body>
+</html>
