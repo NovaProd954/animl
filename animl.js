@@ -568,7 +568,7 @@ function tracedPath(targetEl, opts={}){
     if (!last || Math.hypot(cur[0]-last[0], cur[1]-last[1]) > (opts.minDist||2)){
       verts.push(cur);
       if (opts.maxPoints && verts.length > opts.maxPoints) verts.shift();
-      el.props.points = straightVPoints(verts);
+      el.props.points = smoothVPoints(verts, false);
     }
   });
   return trace;

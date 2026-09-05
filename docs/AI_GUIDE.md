@@ -14,14 +14,14 @@ Animl is an **HTML/JS library**, not a framework or npm package to install — t
 ## Setting up a 2D scene
 
 ```js
-const scene = new Animl.Scene("#stage", { width: 800, height: 500, background: "#0d1117" });
+const scene = new Animl.Scene("#stage", { width: 800, height: 500 }); // defaults to Manim's black background
 // optional: { renderer: "canvas" } instead of default SVG — required if you plan to call scene.record()
 ```
 
 ## Setting up a 3D scene
 
 ```js
-const scene = new Animl.Scene3D("#stage", { width: 800, height: 500, background: "#0d1117", cameraDistance: 6 });
+const scene = new Animl.Scene3D("#stage", { width: 800, height: 500, cameraDistance: 6 }); // defaults to Manim's black background
 // mouse-drag orbit and scroll-zoom are built in automatically
 ```
 
@@ -42,7 +42,7 @@ const scene = new Animl.Scene3D("#stage", { width: 800, height: 500, background:
 All 2D elements also accept: `rotation` (degrees), `scale`, `opacity` (0-1), `stroke`, `strokeWidth`.
 
 ```js
-const c = new Animl.Circle({ x: -100, y: 0, radius: 40, fill: "#4f8fff" });
+const c = new Animl.Circle({ x: -100, y: 0, radius: 40, fill: Animl.Colors.BLUE });
 scene.add(c);
 ```
 
@@ -57,7 +57,7 @@ scene.add(c);
 All 3D elements also accept: `rotationX,rotationY,rotationZ` (radians), `scale` (uniform).
 
 ```js
-const cube = new Animl.Cube({ x: 0, y: 0, z: 0, size: 1.5, fill: "#ff6b6b" });
+const cube = new Animl.Cube({ x: 0, y: 0, z: 0, size: 1.5, fill: Animl.Colors.RED });
 scene.add(cube);
 ```
 
@@ -107,7 +107,19 @@ recorder.stop(); // downloads a .webm automatically
 
 ## Bezier shapes (VMobject) — for real morphing/Transform
 
-`VMobject` is a bezier-path shape (like Manim's core object) defined by an array of points, each `{ anchor:[x,y], h1:[x,y], h2:[x,y] }` (h1 = incoming control handle, h2 = outgoing). Straight-edged shapes just repeat the anchor for both handles.
+`VMobject` is a bezier-path shape (like Manim's core object) defined by an array of points, each `{ anchor:[x,y], h1:[x,y], h2:[x,y] }` (h1 = incoming control handle, h2 = outgoing).
+
+**For a straight edge between two anchors, both handles must equal THAT POINT'S OWN ANCHOR — not each other, not some offset point.** Setting `h1`/`h2` to any point other than their own anchor creates a curve, even if `h1` and `h2` happen to equal each other.
+
+```js
+// CORRECT — straight edge, handles equal their own anchor:
+{ anchor: [0, 0], h1: [0, 0], h2: [0, 0] }
+
+// WRONG — this creates a bulging curve, not a straight line, even though h1 === h2:
+{ anchor: [0, 0], h1: [0, -80], h2: [0, -80] }
+```
+
+If you're building a simple polygon/rectangle by hand, prefer `straightVPoints([[x,y], [x,y], ...])` (exported on `Animl`) over writing point objects yourself — it does this correctly for you. Simpler still: just use `Animl.Rect`, `Animl.Polygon`, or `Animl.shapes.regularPolygon` instead of hand-built VMobjects whenever the shape doesn't need custom curves.
 
 Built-in factories (all return a ready-to-add `VMobject`):
 
@@ -119,9 +131,9 @@ Animl.shapes.triangle(radius, props)
 ```
 
 ```js
-const tri = Animl.shapes.regularPolygon(3, 80, { fill: "#4f8fff" });
+const tri = Animl.shapes.regularPolygon(3, 80, { fill: Animl.Colors.BLUE });
 scene.add(tri);
-await scene.play(Animl.anim.morphTo(tri, Animl.shapes.star(5, 35, 80).props.points, { fill: "#f7b731", duration: 1.2 }));
+await scene.play(Animl.anim.morphTo(tri, Animl.shapes.star(5, 35, 80).props.points, { fill: Animl.Colors.GOLD, duration: 1.2 }));
 ```
 
 `anim.morphTo(el, targetPointsOrVMobject, opts)` automatically aligns point counts between mismatched shapes (subdivides the simpler one) before interpolating — this is how a triangle can morph into a star.
@@ -137,7 +149,7 @@ Requires loading vendored KaTeX first (ship `vendor/katex/` alongside `animl.js`
 ```
 
 ```js
-const eq = new Animl.MathTex({ x: 0, y: 0, tex: "\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}", fontSize: 40, fill: "#e6edf3" });
+const eq = new Animl.MathTex({ x: 0, y: 0, tex: "\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}", fontSize: 40, fill: Animl.Colors.WHITE });
 scene.add(eq);
 ```
 
@@ -176,7 +188,7 @@ Beyond the 11 core functions above, these are also available:
 Scene-level compound helpers (these run their own internal `play()`/`add()`/`remove()` sequence, so `await` them directly instead of passing to `scene.play()`):
 
 ```js
-await scene.circumscribe(el, { color: "#f7b731", holdTime: 0.4 }); // draws a highlight box around el, then removes it
+await scene.circumscribe(el, { color: Animl.Colors.GOLD, holdTime: 0.4 }); // draws a highlight box around el, then removes it
 await scene.focusOn(el, { duration: 0.8 }); // spotlight-shrink effect onto el
 ```
 
@@ -185,7 +197,7 @@ await scene.focusOn(el, { duration: 0.8 }); // spotlight-shrink effect onto el
 ```js
 const axes = new Animl.Axes({ xRange:[-5,5,1], yRange:[-2,2,1], width:600, height:350 });
 scene.add(axes);
-const curve = axes.plot(x => Math.sin(x), { color:"#4f8fff" });
+const curve = axes.plot(x => Math.sin(x), { color:Animl.Colors.BLUE });
 scene.add(curve);
 const parametric = axes.parametricPlot(t => [2*Math.cos(t), 2*Math.sin(t)], [0, Math.PI*2]);
 ```
@@ -196,12 +208,12 @@ const parametric = axes.parametricPlot(t => [2*Math.cos(t), 2*Math.sin(t)], [0, 
 
 ```js
 const tracker = new Animl.ValueTracker(0);
-const dot = new Animl.Dot({ fill:"#f7b731" });
+const dot = new Animl.Dot({ fill:Animl.Colors.GOLD });
 scene.add(dot);
 dot.addUpdater(() => { dot.props.x = axes.toScreen(tracker.value, Math.sin(tracker.value))[0]; });
 await scene.play(Animl.anim.transform(tracker, { value: 5 }, { duration: 3 })); // drives the dot via its updater
 
-const trail = Animl.tracedPath(dot, { color:"#f7b731", minDist:1 }); // grows as dot.props.x/y change
+const trail = Animl.tracedPath(dot, { color:Animl.Colors.GOLD, minDist:1 }); // grows as dot.props.x/y change
 scene.add(trail);
 ```
 
@@ -210,7 +222,7 @@ scene.add(trail);
 ## More shapes and helpers
 
 ```js
-Animl.shapes.arrow(x1, y1, x2, y2, { color:"#4f8fff" });      // returns a Group (shaft + head)
+Animl.shapes.arrow(x1, y1, x2, y2, { color:Animl.Colors.BLUE });      // returns a Group (shaft + head)
 Animl.shapes.surroundingRectangle(el, { padding:10 });        // returns a Rect sized to el's bounds
 el.copy();                                                     // deep clone (new instance, own children)
 scene.playLagged([anim1, anim2, anim3], 0.15);                 // staggered start times, like Manim's LaggedStart
@@ -220,7 +232,7 @@ scene.playLagged([anim1, anim2, anim3], 0.15);                 // staggered star
 
 ```js
 const svgSource = `<svg xmlns="http://www.w3.org/2000/svg"><path d="M 0 0 L 100 0 L 50 80 Z"/></svg>`;
-const shape = Animl.SVGMobject(svgSource, { fill: "#4f8fff" });
+const shape = Animl.SVGMobject(svgSource, { fill: Animl.Colors.BLUE });
 scene.add(shape);
 ```
 
@@ -229,8 +241,8 @@ Parses every `<path d="...">` in the SVG into VMobjects (supports M/L/H/V/C/S/Q/
 ## More annotation shapes
 
 ```js
-Animl.shapes.brace(x1, y1, x2, y2, { color:"#e6edf3" });        // curly-brace-style VMobject between two points
-Animl.shapes.doubleArrow(x1, y1, x2, y2, { color:"#4f8fff" });  // arrowheads on both ends, returns a Group
+Animl.shapes.brace(x1, y1, x2, y2, { color:Animl.Colors.WHITE });        // curly-brace-style VMobject between two points
+Animl.shapes.doubleArrow(x1, y1, x2, y2, { color:Animl.Colors.BLUE });  // arrowheads on both ends, returns a Group
 Animl.shapes.underline(el, { gap:6 });                           // returns a Line positioned under el's bounds
 ```
 
@@ -246,6 +258,8 @@ await scene.moveCamera({ azimuth: Math.PI, elevation: 0.9, radius: 4 }, { durati
 `camera` properties: `azimuth`, `elevation` (radians, orbit angles), `radius` (distance from target), `targetX/targetY/targetZ` (look-at point). Mouse-drag/scroll orbit controls still work alongside scripted moves — a user can grab the camera mid-animation.
 
 ## Manim's exact color palette (`Animl.Colors`)
+
+**Rule: always use `Animl.Colors.*` for every color in a scene. Never write your own hex codes.** This is not a suggestion — a scene using invented hex values (even tasteful ones) will not look like Manim, because Manim's specific muted/desaturated palette is a large part of its visual identity. If you need "a dark neutral background element," use `Animl.Colors.GRAY_E`/`GRAY_D`, not an invented dark gray like `#161b22` or `#30363d` (which are GitHub's UI colors, not Manim's).
 
 Use these instead of arbitrary hex codes to match Manim's actual visual style:
 
@@ -274,7 +288,7 @@ Beyond `linear`, `smooth`, `easeIn`, `easeOut`, `bounce`: `rushInto`, `rushFrom`
 <script src="animl.js"></script>
 <script>
 const scene = new Animl.Scene("#stage", { width: 800, height: 500 });
-const circle = new Animl.Circle({ x: -200, y: 0, radius: 50, fill: "#4f8fff" });
+const circle = new Animl.Circle({ x: -200, y: 0, radius: 50, fill: Animl.Colors.BLUE });
 const label = new Animl.Txt({ x: 0, y: -150, text: "Hello", fontSize: 40 });
 scene.add(circle);
 scene.add(label);
