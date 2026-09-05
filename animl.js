@@ -2,9 +2,15 @@
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+function sigmoid(x){ return 1/(1+Math.exp(-x)); }
+
 const Easing = {
   linear: t => t,
-  smooth: t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2,
+  smooth: t => {
+    const inflection = 10.0;
+    const error = sigmoid(-inflection/2);
+    return Math.min(1, Math.max(0, (sigmoid(inflection*(t-0.5)) - error) / (1 - 2*error)));
+  },
   easeIn: t => t*t*t,
   easeOut: t => 1 - Math.pow(1-t,3),
   bounce: t => {
@@ -13,9 +19,46 @@ const Easing = {
     if (t < 2/d1) return n1*(t-=1.5/d1)*t + 0.75;
     if (t < 2.5/d1) return n1*(t-=2.25/d1)*t + 0.9375;
     return n1*(t-=2.625/d1)*t + 0.984375;
-  }
+  },
+  rushInto: t => 2*Easing.smooth(t/2),
+  rushFrom: t => 2*Easing.smooth(t/2+0.5) - 1,
+  slowInto: t => Math.sqrt(1 - (1-t)*(1-t)),
+  doubleSmooth: t => t < 0.5 ? 0.5*Easing.smooth(2*t) : 0.5*(1+Easing.smooth(2*t-1)),
+  thereAndBack: t => t < 0.5 ? Easing.smooth(2*t) : Easing.smooth(2*(1-t)),
+  wiggleRate: (t, wiggles=2) => Easing.thereAndBack(t) * Math.sin(wiggles*Math.PI*t),
+  exponentialDecay: (t, halfLife=0.1) => 1 - Math.exp(-t/halfLife),
+  easeInSine: t => 1 - Math.cos((t*Math.PI)/2),
+  easeOutSine: t => Math.sin((t*Math.PI)/2),
+  easeInOutSine: t => -(Math.cos(Math.PI*t) - 1)/2,
+  easeInCubic: t => t*t*t,
+  easeOutCubic: t => 1 - Math.pow(1-t,3),
+  easeInOutCubic: t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2,
+  easeInQuad: t => t*t,
+  easeOutQuad: t => 1 - (1-t)*(1-t),
+  easeInOutQuad: t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2,
+  easeInBack: t => 2.70158*t*t*t - 1.70158*t*t,
+  easeOutBack: t => 1 + 2.70158*Math.pow(t-1,3) + 1.70158*Math.pow(t-1,2)
 };
 function resolveEasing(e){ return typeof e === "string" ? (Easing[e]||Easing.smooth) : (e||Easing.smooth); }
+
+const Colors = {
+  BLACK:"#000000", WHITE:"#FFFFFF",
+  BLUE:"#58C4DD", BLUE_A:"#C7E9F1", BLUE_B:"#9CDCEB", BLUE_C:"#58C4DD", BLUE_D:"#29ABCA", BLUE_E:"#236B8E", DARK_BLUE:"#236B8E",
+  TEAL:"#5CD0B3", TEAL_A:"#ACEAD7", TEAL_B:"#76DDC0", TEAL_C:"#5CD0B3", TEAL_D:"#55C1A7", TEAL_E:"#49A88F",
+  GREEN:"#83C167", GREEN_A:"#C9E2AE", GREEN_B:"#A6CF8C", GREEN_C:"#83C167", GREEN_D:"#77B05D", GREEN_E:"#699C52",
+  YELLOW:"#F7D96F", YELLOW_A:"#FFF1B6", YELLOW_B:"#FFEA94", YELLOW_C:"#F7D96F", YELLOW_D:"#F4D345", YELLOW_E:"#E8C11C",
+  GOLD:"#F0AC5F", GOLD_A:"#F7C797", GOLD_B:"#F9B775", GOLD_C:"#F0AC5F", GOLD_D:"#E1A158", GOLD_E:"#C78D46",
+  RED:"#FC6255", RED_A:"#F7A1A3", RED_B:"#FF8080", RED_C:"#FC6255", RED_D:"#E65A4C", RED_E:"#CF5044",
+  MAROON:"#C55F73", MAROON_A:"#ECABC1", MAROON_B:"#EC92AB", MAROON_C:"#C55F73", MAROON_D:"#A24D61", MAROON_E:"#94424F",
+  PURPLE:"#9A72AC", PURPLE_A:"#CAA3E8", PURPLE_B:"#B189C6", PURPLE_C:"#9A72AC", PURPLE_D:"#715582", PURPLE_E:"#644172",
+  PINK:"#D147BD", LIGHT_PINK:"#DC75CD", ORANGE:"#FF862F",
+  GRAY:"#888888", GRAY_A:"#DDDDDD", GRAY_B:"#BBBBBB", GRAY_C:"#888888", GRAY_D:"#444444", GRAY_E:"#222222",
+  GREY:"#888888", GREY_A:"#DDDDDD", GREY_B:"#BBBBBB", GREY_C:"#888888", GREY_D:"#444444", GREY_E:"#222222",
+  LIGHT_GRAY:"#BBBBBB", DARK_GRAY:"#444444", LIGHTER_GRAY:"#DDDDDD", DARKER_GRAY:"#222222",
+  LIGHT_BROWN:"#CD853F", DARK_BROWN:"#8B4513", GRAY_BROWN:"#736357",
+  PURE_RED:"#FF0000", PURE_GREEN:"#00FF00", PURE_BLUE:"#0000FF",
+  LOGO_BLACK:"#343434", LOGO_BLUE:"#525893", LOGO_GREEN:"#87C2A5", LOGO_RED:"#E07A5F", LOGO_WHITE:"#ECE7E2"
+};
 
 function lerp(a,b,t){ return a + (b-a)*t; }
 function hexToRgb(hex){
@@ -87,7 +130,7 @@ class Element {
     this.id = nextId();
     this.props = Object.assign({
       x:0, y:0, z:0, rotation:0, rotationX:0, rotationY:0, rotationZ:0, scale:1,
-      fill:"#4f8fff", stroke:"none", strokeWidth:2, opacity:1, fillOpacity:1
+      fill:Colors.BLUE, stroke:"none", strokeWidth:2, opacity:1, fillOpacity:1
     }, props);
     this.children = [];
     this.node = null;
@@ -151,15 +194,15 @@ class Circle extends Element { constructor(p){ super("circle", Object.assign({ra
 class Dot extends Element { constructor(p){ super("circle", Object.assign({radius:6}, p)); } }
 class Rect extends Element { constructor(p){ super("rect", Object.assign({width:100,height:60}, p)); } }
 class Ellipse extends Element { constructor(p){ super("ellipse", Object.assign({rx:60,ry:35}, p)); } }
-class Line extends Element { constructor(p){ super("line", Object.assign({x1:0,y1:0,x2:100,y2:0,stroke:"#4f8fff",strokeWidth:3}, p)); } }
+class Line extends Element { constructor(p){ super("line", Object.assign({x1:0,y1:0,x2:100,y2:0,stroke:Colors.BLUE,strokeWidth:3}, p)); } }
 class Path extends Element { constructor(p){ super("path", Object.assign({d:""}, p)); } }
 class Polygon extends Element { constructor(p){ super("polygon", Object.assign({points:[]}, p)); } }
-class Txt extends Element { constructor(p){ super("text", Object.assign({text:"",fontSize:32,fontFamily:"sans-serif",fill:"#222"}, p)); } }
+class Txt extends Element { constructor(p){ super("text", Object.assign({text:"",fontSize:32,fontFamily:"sans-serif",fill:Colors.WHITE}, p)); } }
 class Group extends Element { constructor(p){ super("group", p); } }
-class MathTex extends Element { constructor(p){ super("mathtex", Object.assign({tex:"", fontSize:32, fill:"#e6edf3"}, p)); } }
+class MathTex extends Element { constructor(p){ super("mathtex", Object.assign({tex:"", fontSize:32, fill:Colors.WHITE}, p)); } }
 
 class VMobject extends Element {
-  constructor(p={}){ super("vmobject", Object.assign({ points: p.points||[], closed: p.closed!==false, fill:"#4f8fff", stroke:"none", strokeWidth:2 }, p)); }
+  constructor(p={}){ super("vmobject", Object.assign({ points: p.points||[], closed: p.closed!==false, fill:Colors.BLUE, stroke:"none", strokeWidth:2 }, p)); }
 }
 
 function pathFromVPoints(points, closed){
@@ -178,6 +221,19 @@ function pathFromVPoints(points, closed){
 
 function straightVPoints(vertices){
   return vertices.map(v => ({ anchor:[v[0],v[1]], h1:[v[0],v[1]], h2:[v[0],v[1]] }));
+}
+
+function smoothVPoints(vertices, closed=false){
+  const n = vertices.length;
+  if (n < 3) return straightVPoints(vertices);
+  const get = i => closed ? vertices[(i+n)%n] : vertices[Math.max(0, Math.min(n-1, i))];
+  const pts = [];
+  for (let i=0;i<n;i++){
+    const p0=get(i-1), p1=get(i), p2=get(i+1);
+    const dx=(p2[0]-p0[0])/6, dy=(p2[1]-p0[1])/6;
+    pts.push({ anchor:[p1[0],p1[1]], h1:[p1[0]-dx,p1[1]-dy], h2:[p1[0]+dx,p1[1]+dy] });
+  }
+  return pts;
 }
 
 const CIRC_K = 0.5522847498;
@@ -283,6 +339,8 @@ function syncSvgNode(el){
     n.setAttribute("fill-opacity", p.fillOpacity!==undefined?p.fillOpacity:1);
     n.setAttribute("stroke", p.stroke);
     n.setAttribute("stroke-width", p.strokeWidth);
+    n.setAttribute("stroke-linecap", "round");
+    n.setAttribute("stroke-linejoin", "round");
   }
   switch(el.type){
     case "circle":
@@ -336,10 +394,12 @@ function syncMathTexOverlay(el, scene){
     scene.htmlLayer.appendChild(el._htmlNode);
   }
   const p = el.props;
-  if (el._lastTex !== p.tex){
+  if (el._lastTex !== p.tex || !el._renderedWithKatex){
     const k = (typeof katex !== "undefined") ? katex : (typeof window !== "undefined" ? window.katex : undefined);
-    if (k){ try { el._htmlNode.innerHTML = k.renderToString(p.tex, { throwOnError:false }); } catch(e){ el._htmlNode.textContent = p.tex; } }
-    else { el._htmlNode.textContent = p.tex; }
+    if (k){
+      try { el._htmlNode.innerHTML = k.renderToString(p.tex, { throwOnError:false }); el._renderedWithKatex = true; }
+      catch(e){ el._htmlNode.textContent = p.tex; el._renderedWithKatex = false; }
+    } else { el._htmlNode.textContent = p.tex; el._renderedWithKatex = false; }
     el._lastTex = p.tex;
   }
   el._htmlNode.style.left = (scene.width/2 + p.x) + "px";
@@ -360,6 +420,8 @@ function drawCanvasElement(ctx, el){
   ctx.fillStyle = p.fill;
   ctx.strokeStyle = p.stroke === "none" ? "transparent" : p.stroke;
   ctx.lineWidth = p.strokeWidth;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   switch(el.type){
     case "circle":
       ctx.beginPath(); ctx.arc(0,0,p.radius,0,Math.PI*2);
@@ -442,7 +504,8 @@ class Axes extends Group {
       const x = xmin + (xmax-xmin)*i/samples, y = fn(x);
       if (Number.isFinite(y)) verts.push(this.toScreen(x,y));
     }
-    return new VMobject({ points: straightVPoints(verts), closed:false, fill:"none", stroke: opts.color||"#4f8fff", strokeWidth: opts.strokeWidth||3 });
+    const pts = opts.smooth === false ? straightVPoints(verts) : smoothVPoints(verts, false);
+    return new VMobject({ points: pts, closed:false, fill:"none", stroke: opts.color||Colors.BLUE, strokeWidth: opts.strokeWidth||4 });
   }
   parametricPlot(fn, tRange, opts={}){
     const samples = opts.samples || 120;
@@ -452,7 +515,9 @@ class Axes extends Group {
       const [x,y] = fn(t);
       if (Number.isFinite(x) && Number.isFinite(y)) verts.push(this.toScreen(x,y));
     }
-    return new VMobject({ points: straightVPoints(verts), closed: opts.closed||false, fill: opts.fill||"none", stroke: opts.color||"#4f8fff", strokeWidth: opts.strokeWidth||3 });
+    const closed = opts.closed||false;
+    const pts = opts.smooth === false ? straightVPoints(verts) : smoothVPoints(verts, closed);
+    return new VMobject({ points: pts, closed, fill: opts.fill||"none", stroke: opts.color||Colors.BLUE, strokeWidth: opts.strokeWidth||4 });
   }
 }
 
@@ -477,7 +542,7 @@ class NumberLine extends Group {
 function arrow(x1,y1,x2,y2,props={}){
   const angle = Math.atan2(y2-y1, x2-x1);
   const headLen = props.headLength||15, headWidth = props.headWidth||10;
-  const color = props.color||"#4f8fff";
+  const color = props.color||Colors.BLUE;
   const shaftEndX = x2-Math.cos(angle)*headLen*0.6, shaftEndY = y2-Math.sin(angle)*headLen*0.6;
   const perpX = -Math.sin(angle), perpY = Math.cos(angle);
   const backX = x2-Math.cos(angle)*headLen, backY = y2-Math.sin(angle)*headLen;
@@ -494,7 +559,7 @@ function surroundingRectangle(el, opts={}){
 }
 
 function tracedPath(targetEl, opts={}){
-  const trace = new VMobject({ points: [], closed:false, fill:"none", stroke: opts.color||"#4f8fff", strokeWidth: opts.strokeWidth||3 });
+  const trace = new VMobject({ points: [], closed:false, fill:"none", stroke: opts.color||Colors.BLUE, strokeWidth: opts.strokeWidth||3 });
   trace._verts = [];
   trace.addUpdater(el => {
     const verts = trace._verts;
@@ -646,7 +711,7 @@ function svgMobject(svgString, props={}){
   pathDs.forEach(d => {
     if (!d) return;
     parsePathData(d).forEach(sp => {
-      group.add(new VMobject({ points: sp.points, closed: sp.closed, fill: props.fill||"#4f8fff", stroke: props.stroke||"none", strokeWidth: props.strokeWidth||2 }));
+      group.add(new VMobject({ points: sp.points, closed: sp.closed, fill: props.fill||Colors.BLUE, stroke: props.stroke||"none", strokeWidth: props.strokeWidth||2 }));
     });
   });
   return group;
@@ -669,7 +734,7 @@ function brace(x1,y1,x2,y2,props={}){
 
 function doubleArrow(x1,y1,x2,y2,props={}){
   const angle = Math.atan2(y2-y1, x2-x1), dx=Math.cos(angle), dy=Math.sin(angle);
-  const headLen = props.headLength||15, headWidth = props.headWidth||10, color = props.color||"#4f8fff";
+  const headLen = props.headLength||15, headWidth = props.headWidth||10, color = props.color||Colors.BLUE;
   const perpX=-dy, perpY=dx;
   const group = new Group({});
   group.add(new Line({ x1:x1+dx*headLen*0.6, y1:y1+dy*headLen*0.6, x2:x2-dx*headLen*0.6, y2:y2-dy*headLen*0.6, stroke:color, strokeWidth:props.strokeWidth||3 }));
@@ -691,7 +756,7 @@ class Scene {
     this.container = typeof target === "string" ? document.querySelector(target) : target;
     this.width = opts.width || 800;
     this.height = opts.height || 500;
-    this.bg = opts.background || "#0d1117";
+    this.bg = opts.background || "#000000";
     this.mode = opts.renderer === "canvas" ? "canvas" : "svg";
     this.roots = [];
     this._running = true;
@@ -1013,7 +1078,7 @@ class Element3D {
   constructor(geomFn, props={}){
     this.geomFn = geomFn;
     this.id = nextId();
-    this.props = Object.assign({ x:0,y:0,z:0, rotationX:0,rotationY:0,rotationZ:0, scale:1, fill:"#4f8fff", opacity:1 }, props);
+    this.props = Object.assign({ x:0,y:0,z:0, rotationX:0,rotationY:0,rotationZ:0, scale:1, fill:Colors.BLUE, opacity:1 }, props);
     this._buffers = null;
   }
   set(props){ Object.assign(this.props, props); return this; }
@@ -1031,7 +1096,7 @@ class Scene3D {
     this.canvas = document.createElement("canvas");
     this.canvas.width = this.width; this.canvas.height = this.height;
     this.canvas.style.width = "100%"; this.canvas.style.display = "block";
-    this.canvas.style.background = opts.background || "#0d1117";
+    this.canvas.style.background = opts.background || "#000000";
     this.container.appendChild(this.canvas);
     const gl = this.canvas.getContext("webgl");
     if (!gl) throw new Error("WebGL not available in this environment.");
@@ -1145,8 +1210,8 @@ global.Animl = {
   SVGMobject: svgMobject, parsePathData,
   Cube, Sphere, Plane,
   Axes, NumberLine, ValueTracker, tracedPath,
-  anim, Easing, Mat4, Vec3,
-  nextTo, arrange, getBounds
+  anim, Easing, Colors, Mat4, Vec3,
+  nextTo, arrange, getBounds, smoothVPoints, straightVPoints
 };
 
 })(typeof window !== "undefined" ? window : globalThis);

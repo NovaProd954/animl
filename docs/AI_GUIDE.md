@@ -245,6 +245,28 @@ await scene.moveCamera({ azimuth: Math.PI, elevation: 0.9, radius: 4 }, { durati
 
 `camera` properties: `azimuth`, `elevation` (radians, orbit angles), `radius` (distance from target), `targetX/targetY/targetZ` (look-at point). Mouse-drag/scroll orbit controls still work alongside scripted moves — a user can grab the camera mid-animation.
 
+## Manim's exact color palette (`Animl.Colors`)
+
+Use these instead of arbitrary hex codes to match Manim's actual visual style:
+
+```js
+Animl.Colors.BLUE   // "#58C4DD"   Animl.Colors.RED     // "#FC6255"
+Animl.Colors.GREEN  // "#83C167"   Animl.Colors.YELLOW  // "#F7D96F"
+Animl.Colors.PURPLE // "#9A72AC"   Animl.Colors.TEAL    // "#5CD0B3"
+Animl.Colors.GOLD   // "#F0AC5F"   Animl.Colors.MAROON  // "#C55F73"
+Animl.Colors.WHITE  // "#FFFFFF"   Animl.Colors.BLACK   // "#000000"
+```
+
+Most also have `_A` (lightest) through `_E` (darkest) variants: `BLUE_A`...`BLUE_E`, `RED_A`...`RED_E`, `GREEN_A`...`GREEN_E`, `GOLD_A`...`GOLD_E`, `PURPLE_A`...`PURPLE_E`, `MAROON_A`...`MAROON_E`, `TEAL_A`...`TEAL_E`, `YELLOW_A`...`YELLOW_E`, `GRAY_A`...`GRAY_E` (`GREY_*` aliases also work). All default shape fills now use `Colors.BLUE`, default text uses `Colors.WHITE`, and `Scene`/`Scene3D` default to a black background — matching Manim's classic look out of the box.
+
+## Expanded easing (`Animl.Easing`)
+
+Beyond `linear`, `smooth`, `easeIn`, `easeOut`, `bounce`: `rushInto`, `rushFrom`, `slowInto`, `doubleSmooth`, `thereAndBack`, `exponentialDecay(t, halfLife)`, `easeInSine`/`easeOutSine`/`easeInOutSine`, `easeInCubic`/`easeOutCubic`/`easeInOutCubic`, `easeInQuad`/`easeOutQuad`/`easeInOutQuad`, `easeInBack`/`easeOutBack`. `smooth` (the default) is Manim's actual sigmoid-based rate function, not a generic quadratic ease.
+
+## Smooth curves through points (`Animl.smoothVPoints`)
+
+`Axes.plot()` and `Axes.parametricPlot()` now fit a smooth curve through sampled points by default (Catmull-Rom → cubic Bezier conversion) instead of connecting them with straight segments — this is what gives plotted functions Manim's organic, fluid look. Pass `{ smooth: false }` to fall back to straight polyline segments. Use `Animl.smoothVPoints(points, closed)` directly to smooth any array of `[x,y]` vertices for a custom `VMobject`.
+
 ## Full minimal example (copy-adapt this)
 
 ```html

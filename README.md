@@ -75,6 +75,9 @@ SVG-mode 2D scenes throw a clear error if you call `record()` on them, since SVG
 
 ## Status
 
+- [x] **Manim visual-parity pass** — exact color palette ported from ManimCE's official docs (both MIT-licensed, both from The Manim Community Dev Team / 3Blue1Brown LLC), Manim's actual sigmoid-based `smooth()` rate function plus 15 more named easing curves (`rushInto`, `thereAndBack`, `exponentialDecay`, sine/cubic/quad/back families), Catmull-Rom smooth curve fitting for `Axes.plot()`/`parametricPlot()` (was straight-line polyline segments before), rounded stroke caps/joins, and a black default background with white default text (fixing a real bug where default text was near-invisible on the newly-black background)
+- [x] **Fixed a real MathTex race-condition bug** — if KaTeX hadn't finished loading on the first render frame, equations used to get permanently stuck as raw unrendered text forever, even after KaTeX became available. Now self-heals every frame until it renders correctly.
+
 - [x] **SVGMobject** — import arbitrary SVG path data (M/L/H/V/C/S/Q/T/A/Z commands, including elliptical arcs converted to bezier) into VMobjects. Animl does not ship or fetch any third-party icon/asset libraries itself — bring your own SVG content you have rights to use.
 - [x] More annotation shapes: `shapes.brace`, `shapes.doubleArrow`, `shapes.underline`
 - [x] **Scripted 3D camera moves** — `scene.moveCamera({azimuth, elevation, radius, ...}, opts)`, animated through the same generic timeline as everything else; interactive mouse-orbit still works alongside it
